@@ -1,5 +1,6 @@
 import random
 import time
+import json
 from datetime import datetime
 
 from sqlalchemy.orm import Session
@@ -9,10 +10,30 @@ from models import Job
 
 def process_job(job: Job) -> tuple[bool, str | None]:
     """
-    Simulate doing work.
-    Return (success, error_message).
+    Deterministic controls (for QA/testing) via payload:
+      payload.force = "success" | "fail"
+      payload.fail_times = int  (fail this many attempts, then succeed)
+    Otherwise, default is 80% success probability.
     """
-    # 80% success rate by default
+    try:
+        payload = json.loads(job.payload)
+    except Exception:
+        payload = {}
+
+    force = payload.get("force")
+    if force == "success":
+        return True, None
+    if force == "fail":
+        return False, "Forced failure"
+
+    fail_times = payload.get("fail_times")
+    if isinstance(fail_times, int) and fail_times >= 0:
+        # If attempts so far are less than fail_times, fail; otherwise succeed
+        if job.attempts < fail_times:
+            return False, f"Planned failure {job.attempts + 1}/{fail_times}"
+        return True, None
+
+    # Default random mode (good for manual exploration)
     if random.random() < 0.8:
         return True, None
     return False, "Simulated failure"
