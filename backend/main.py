@@ -7,11 +7,19 @@ from sqlalchemy.orm import Session
 from db import Base, engine, SessionLocal
 from models import Job
 from schemas import JobCreate, JobOut
+import threading
+from worker import run_worker
 
 app = FastAPI()
 
 # Create DB tables at startup (fine for this learning project)
 Base.metadata.create_all(bind=engine)
+
+def start_worker():
+    t = threading.Thread(target=run_worker, daemon=True)
+    t.start()
+
+start_worker()
 
 def get_db():
     db = SessionLocal()
