@@ -1,7 +1,9 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "sqlite:///./retrylab.db"
+DB_FILENAME = os.getenv("RETRYLAB_DB", "retrylab.db")
+DATABASE_URL = f"sqlite:///./{DB_FILENAME}"
 
 engine = create_engine(
     DATABASE_URL,
