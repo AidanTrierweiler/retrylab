@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from db import Base, engine, SessionLocal
@@ -11,6 +12,15 @@ import threading
 from worker import run_worker
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Create DB tables at startup (fine for this learning project)
 Base.metadata.create_all(bind=engine)
